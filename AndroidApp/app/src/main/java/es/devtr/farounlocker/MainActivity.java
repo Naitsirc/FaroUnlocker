@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Patterns;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -17,6 +18,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+
+import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import es.devtr.farounlocker.helper.ImagenAdapter;
 import es.devtr.farounlocker.helper.Parser;
@@ -73,65 +78,75 @@ public class MainActivity extends AppCompatActivity {
             direccion = data.toString();
         }
 
-        Parser.load(direccion, new Parser.SchemaListener() {
+        direccion = getLinkFromString(direccion);
 
-            @Override
-            public void OnSchemaLoaded(ContextSchema contextSchema) {
+        android.util.Log.v("Enlace","=>"+direccion);
 
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
+        if(direccion!=null) {
 
-                        Form form = new Form(contextSchema);
+            Parser.load(direccion, new Parser.SchemaListener() {
 
-                        ImageView imagenPortada = (ImageView) findViewById(R.id.imagen_portada);
+                @Override
+                public void OnSchemaLoaded(ContextSchema contextSchema) {
 
-                        Glide.with(context)
-                                .load(form.getPortadaUrl())
-                                .into(imagenPortada);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
 
-                        imagenPortada.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
-                                CustomTabsIntent customTabsIntent = builder.build();
-                                customTabsIntent.launchUrl(context, Uri.parse(form.getPortadaUrl()));
-                            }
-                        });
+                            Form form = new Form(contextSchema);
 
-                        TextView intro = findViewById(R.id.intro);
-                        TextView body = findViewById(R.id.body);
-                        TextView title = findViewById(R.id.title);
+                            ImageView imagenPortada = (ImageView) findViewById(R.id.imagen_portada);
 
-                        intro.setText(form.getIntro());
-                        body.setText(form.getBody());
-                        title.setText(form.getPortadaTitulo());
+                            Glide.with(context)
+                                    .load(form.getPortadaUrl())
+                                    .into(imagenPortada);
 
-                        RecyclerView recyclerView
-                                = (RecyclerView)findViewById(
-                                R.id.imagenes);
+                            imagenPortada.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
+                                    CustomTabsIntent customTabsIntent = builder.build();
+                                    customTabsIntent.launchUrl(context, Uri.parse(form.getPortadaUrl()));
+                                }
+                            });
 
-                        recyclerView.setVisibility((form.getImagenes()==null || form.getImagenes().size()==0)?View.GONE:View.VISIBLE);
+                            TextView intro = findViewById(R.id.intro);
+                            TextView body = findViewById(R.id.body);
+                            TextView title = findViewById(R.id.title);
 
-                        recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.HORIZONTAL, false));
+                            intro.setText(form.getIntro());
+                            body.setText(form.getBody());
+                            title.setText(form.getPortadaTitulo());
 
-                        ImagenAdapter adapter = new ImagenAdapter(form.getImagenes(), MainActivity.this);
+                            RecyclerView recyclerView
+                                    = (RecyclerView) findViewById(
+                                    R.id.imagenes);
 
-                        recyclerView.setAdapter(adapter);
+                            recyclerView.setVisibility((form.getImagenes() == null || form.getImagenes().size() == 0) ? View.GONE : View.VISIBLE);
 
-                        loading.setVisibility(View.GONE);
+                            recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.HORIZONTAL, false));
 
-                    }
-                });
+                            ImagenAdapter adapter = new ImagenAdapter(form.getImagenes(), MainActivity.this);
 
-            }
+                            recyclerView.setAdapter(adapter);
 
-            @Override
-            public void OnError() {
+                            loading.setVisibility(View.GONE);
 
-            }
+                        }
+                    });
 
-        });
+                }
+
+                @Override
+                public void OnError() {
+                    ErrorActivity.launchActivity(direccion,MainActivity.this);
+                }
+
+            });
+
+        }else{
+            ErrorActivity.launchActivity("",MainActivity.this);
+        }
     }
 
     @Override
@@ -159,5 +174,33 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
 
     }
+
+    private String getLinkFromString(String text){
+
+        ArrayList<String> s = getLinksFromString(text);
+
+        if(s.size()==0){
+            return null;
+        }
+        return s.get(0);
+    }
+
+    private ArrayList<String> getLinksFromString(String text) {
+
+        ArrayList<String> links = new ArrayList<>();
+
+        Matcher m = Patterns.WEB_URL.matcher(text);
+
+        while(m.find()) {
+            String urlStr = m.group();
+            if (urlStr.startsWith("(") && urlStr.endsWith(")"))
+            {
+                urlStr = urlStr.substring(1, urlStr.length() - 1);
+            }
+            links.add(urlStr);
+        }
+        return links;
+    }
+
 
 }
