@@ -1,0 +1,12 @@
+<resources>
+
+    <string name="app_name">FaroUnlocker</string>
+
+    <string name="error_title">Upps!</string>
+    <string name="error_description">No se ha podido procesar esa página web. Es posible que el servicio no funcione con esa página web.</string>
+
+    <string name="explain_title">Hola!</string>
+    <string name="explain_description1">Para hacer funcionar la aplicación y ver contenido bloqueado solo necesitas compartir un enlace de un sitio web bloqueado como harías con WhatsApp.</string>
+    <string name="explain_description2">Al compartir el enlace con la aplicación nos encargaremos de tratar de mostrarte el contenido. Si la web no se puede abrir o no es compatible te lo mostraremos.</string>
+
+</resources>
