@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Patterns;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -31,11 +32,14 @@ import es.devtr.farounlocker.classes.ContextSchema;
 import es.devtr.farounlocker.helper.Form;
 import es.devtr.farounlocker.helper.ImagenAdapter;
 import es.devtr.farounlocker.helper.Parser;
+import es.devtr.farounlocker.helper.Preferences;
 
 public class ExplorerActivity extends AppCompatActivity {
 
     private Activity context;
     private String validUrl = null;
+
+    public static String KEY_LAST_URL = "LAST_URL";
 
     public static void launchActivity(String url, Activity activity){
         Intent intent = new Intent(activity, ExplorerActivity.class);
@@ -54,6 +58,10 @@ public class ExplorerActivity extends AppCompatActivity {
         this.context = this;
 
         validUrl = getIntent().getStringExtra("URL");
+
+        if(!TextUtils.isEmpty(validUrl)){
+            Preferences.save(KEY_LAST_URL, validUrl, getApplicationContext());
+        }
 
         WebView webView = findViewById(R.id.webview);
 
