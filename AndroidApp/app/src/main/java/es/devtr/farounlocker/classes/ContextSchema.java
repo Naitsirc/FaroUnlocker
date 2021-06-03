@@ -6,6 +6,8 @@ import java.util.List;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+import es.devtr.farounlocker.helper.FixString;
+
 
 public class ContextSchema {
 
@@ -49,7 +51,7 @@ public class ContextSchema {
     }
 
     public String getHeadline() {
-        return headline;
+        return FixString.fix(headline);
     }
 
     public void setHeadline(String headline) {
@@ -80,7 +82,7 @@ public class ContextSchema {
         this.associatedMedia = associatedMedia;
     }
     public String getArticleBody() {
-        return articleBody;
+        return FixString.fix(articleBody);
     }
 
     public void setArticleBody(String articleBody) {

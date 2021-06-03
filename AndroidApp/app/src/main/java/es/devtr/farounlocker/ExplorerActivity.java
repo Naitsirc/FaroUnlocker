@@ -1,6 +1,7 @@
 package es.devtr.farounlocker;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -33,8 +34,15 @@ import es.devtr.farounlocker.helper.Parser;
 
 public class ExplorerActivity extends AppCompatActivity {
 
-    private Context context;
-    private String direccion;
+    private Activity context;
+    private String validUrl = null;
+
+    public static void launchActivity(String url, Activity activity){
+        Intent intent = new Intent(activity, ExplorerActivity.class);
+        intent.putExtra("URL",url);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        activity.startActivity(intent);
+    }
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -45,18 +53,54 @@ public class ExplorerActivity extends AppCompatActivity {
 
         this.context = this;
 
+        validUrl = getIntent().getStringExtra("URL");
 
         WebView webView = findViewById(R.id.webview);
 
         webView.getSettings().setJavaScriptEnabled(true);
         webView.setWebViewClient(mWebViewClient);
-        webView.addJavascriptInterface(new MyJavaScriptInterface(),
-                "android");
-        webView.loadUrl("");
+        webView.addJavascriptInterface(new MyJavaScriptInterface(), "android");
+        webView.loadUrl(validUrl);
 
     }
 
-    WebViewClient mWebViewClient = new WebViewClient() {
+
+
+    private final WebViewClient mWebViewClient = new WebViewClient() {
+
+        @Override
+        public boolean shouldOverrideUrlLoading(WebView  view, String  url){
+
+            android.util.Log.v("should","=>"+url);
+
+            if(!url.equals(validUrl)) {
+                Parser.load(url, new Parser.SchemaListener() {
+                    @Override
+                    public void OnSchemaLoaded(ContextSchema contextSchema) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                view.loadUrl(validUrl);
+                                MainActivity.launchActivity(url, context);
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void OnError() {
+                        validUrl = url;
+                    }
+                });
+            }
+
+            return super.shouldOverrideUrlLoading(view, url);
+        }
+
+        @Override
+        public void onLoadResource(WebView  view, String  url){
+
+        }
+
         @Override
         public void onPageFinished(WebView view, String url) {
             view.loadUrl("javascript:window.android.onUrlChange(window.location.href);");

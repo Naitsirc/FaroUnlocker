@@ -5,6 +5,7 @@ import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -19,6 +20,7 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -32,6 +34,13 @@ public class MainActivity extends AppCompatActivity {
 
     private Context context;
     private String direccion;
+
+    public static void launchActivity(String url, Activity activity){
+        Intent intent = new Intent(activity, MainActivity.class);
+        intent.putExtra("URL",url);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        activity.startActivity(intent);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +73,10 @@ public class MainActivity extends AppCompatActivity {
 
         direccion = "";
 
+        if(getIntent()!=null && getIntent().getStringExtra("URL")!=null){
+            direccion = getIntent().getStringExtra("URL");
+        }
+
         if (Intent.ACTION_SEND.equals(action) && type != null) {
             if ("text/plain".equals(type)) {
                 String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
@@ -80,7 +93,6 @@ public class MainActivity extends AppCompatActivity {
 
         direccion = getLinkFromString(direccion);
 
-        android.util.Log.v("Enlace","=>"+direccion);
 
         if(direccion!=null) {
 
@@ -139,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
 
                 @Override
                 public void OnError() {
-                    ErrorActivity.launchActivity(direccion,MainActivity.this);
+                    ExplorerActivity.launchActivity(direccion,MainActivity.this);
                 }
 
             });
@@ -159,7 +171,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         try {
-            if (item.getItemId() == R.id.action_browser) {// User chose the "Settings" item, show the app settings UI...
+
+            if (item.getItemId() == R.id.action_browser) {
 
                 if (direccion != null) {
                     CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
@@ -169,10 +182,32 @@ public class MainActivity extends AppCompatActivity {
 
                 return true;
             }
+
+            if (item.getItemId() == R.id.action_home) {
+
+                if (direccion != null) {
+                    String site = getDomainName(direccion);
+                    if(site!=null){
+                        ExplorerActivity.launchActivity(site, this);
+                    }
+                }
+
+                return true;
+            }
         }catch (Exception ignored){}
 
         return super.onOptionsItemSelected(item);
 
+    }
+
+    public static String getDomainName(String url){
+        try {
+            URI uri = new URI(url);
+            String domain = uri.getHost();
+            return  ((url.startsWith("https")?"https://":"http://")+(domain.startsWith("www.") ? domain.substring(4) : domain));
+        }catch (Exception ignored){
+            return null;
+        }
     }
 
     private String getLinkFromString(String text){

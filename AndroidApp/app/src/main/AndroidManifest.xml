@@ -36,6 +36,12 @@
             android:name="es.devtr.farounlocker.ErrorActivity"
             android:exported="false">
         </activity>
+
+        <activity
+            android:name="es.devtr.farounlocker.ExplorerActivity"
+            android:exported="false">
+        </activity>
+
     </application>
 
 </manifest>
