@@ -37,7 +37,22 @@ public class Parser {
 
                     String html = getContents(url);
 
-                    String json = html.split("application\\/ld\\+json\"\\>")[1].split("</script>")[0];
+                    String[] scripts = html.split("<script type=\"application/ld+json\">");
+
+                    String json = null;
+
+                    if(scripts.length> 1){
+                        for(int i=1;i<scripts.length;i++){
+                            if(scripts[i].contains("NewsArticle")){
+                                json = scripts[i].split("</script>")[0];
+                                break;
+                            }
+                        }
+                    }
+
+                    if(json == null || json.isEmpty()) {
+                        json = html.split("application\\/ld\\+json\"\\>")[1].split("</script>")[0];
+                    }
 
                     Gson gson = new Gson();
                     gson = new GsonBuilder().registerTypeHierarchyAdapter(List.class, new JsonDeserializer<List<?>>() {
